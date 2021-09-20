@@ -26,6 +26,7 @@ public class buttonOrder : MonoBehaviour
     private int missingLabel;
     private string inputtedCode = "";
     private bool buttonLock;
+    private int chimeButton;
 
     private void Start()
     {
@@ -40,8 +41,7 @@ public class buttonOrder : MonoBehaviour
     private void GenerateSolution()
     {
         missingLabel = Rnd.Range(0, 10);
-        ButtonTexts[missingLabel].text = "";
-        ButtonTexts[missingLabel].gameObject.SetActive(false);
+        ButtonTexts[missingLabel].text = "?";
         answer = GetOrder();
         Debug.LogFormat("[Extended Button Order #{0}] The correct order to press the buttons is {1}.", _moduleID, answer);
     }
@@ -65,9 +65,9 @@ public class buttonOrder : MonoBehaviour
                 {
                     moduleSolved = true;
                     StartCoroutine(Solve());
-                    Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, Buttons[btn].transform);
+                    chimeButton = btn;
                     Debug.LogFormat("[Extended Button Order #{0}] You pressed the buttons in the correct order. Module solved!", _moduleID);
-                    Module.HandlePass();
+
                 }
                 else
                 {
@@ -84,25 +84,26 @@ public class buttonOrder : MonoBehaviour
     private IEnumerator Solve()
     {
         ButtonTexts[missingLabel].text = missingLabel.ToString();
-        ButtonTexts[missingLabel].gameObject.SetActive(true);
-        int init = 12;
+        int init = 4;
         for (int i = 0; i < init; i++)
         {
             for (int j = 0; j < ButtonTexts.Length; j++)
                 ButtonTexts[j].color = i % 2 == 0 ? TextColors[0] : TextColors[1];
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.3f);
         }
+        Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, Buttons[chimeButton].transform);
+        Module.HandlePass();
     }
 
     private IEnumerator Strike()
     {
         ButtonTexts[missingLabel].text = missingLabel.ToString();
-        int init = 12;
+        int init = 4;
         for (int i = 0; i < init; i++)
         {
             for (int j = 0; j < ButtonTexts.Length; j++)
                 ButtonTexts[j].color = i % 2 == 0 ? TextColors[2] : TextColors[0];
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.3f);
         }
         Module.HandleStrike();
         buttonLock = false;
@@ -123,6 +124,8 @@ public class buttonOrder : MonoBehaviour
             return "5869473012";
     }
 
+
+    //GoodHood ignore everything from here this is complicated stuff your dummy little brain doesn't understand.
     private static string[] _twitchCommands = { "press", "push", "tap", "submit", "answer" };
 
 #pragma warning disable 0414
