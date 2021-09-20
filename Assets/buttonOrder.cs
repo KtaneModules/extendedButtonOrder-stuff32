@@ -43,7 +43,7 @@ public class buttonOrder : MonoBehaviour
         ButtonTexts[missingLabel].text = "";
         ButtonTexts[missingLabel].gameObject.SetActive(false);
         answer = GetOrder();
-        Debug.LogFormat("[Extended Button Grid #{0}] The correct order to press the buttons is {1}.", _moduleID, answer);
+        Debug.LogFormat("[Extended Button Order #{0}] The correct order to press the buttons is {1}.", _moduleID, answer);
     }
 
     private KMSelectable.OnInteractHandler ButtonPressed(int btn)
