@@ -116,7 +116,7 @@ public class buttonOrder : MonoBehaviour
             return "0123456789";
         else if (Bomb.GetPortPlates().Any(p => p.Length == 0) && missingLabel != 8 && missingLabel != 2 && missingLabel != 9 && missingLabel != 1)
             return "0912345876";
-        else if (Bomb.IsIndicatorPresent(Indicator.CAR) && Bomb.GetPortCount(Port.Serial) > 0 && missingLabel != 8 && missingLabel != 0)
+        else if (Bomb.IsIndicatorPresent(Indicator.CAR) && Bomb.GetPortCount(Port.Serial) > 0 && missingLabel != 7 && missingLabel != 0)
             return "0526398741";
         else if (Bomb.GetBatteryCount(Battery.D) > 0 && Bomb.GetPortPlateCount() > 1)
             return "7894560312";
