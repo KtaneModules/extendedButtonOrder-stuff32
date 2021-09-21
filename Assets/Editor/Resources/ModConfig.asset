@@ -18,4 +18,4 @@ MonoBehaviour:
     missing label for a button.
   version: 1.0
   outputFolder: build
-  previewImage: {fileID: 0}
+  previewImage: {fileID: 2800000, guid: 2eebf36ca99e2fa458d78a4258fb400f, type: 3}
