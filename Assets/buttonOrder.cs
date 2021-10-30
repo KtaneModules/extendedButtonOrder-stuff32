@@ -21,29 +21,55 @@ public class buttonOrder : MonoBehaviour
     public KMSelectable[] Buttons;
     public TextMesh[] ButtonTexts;
     public Color[] TextColors;
+    public MeshRenderer[] StageInds;
+    public Material[] materials;
 
     private string answer;
-    private int missingLabel;
+    private string revealingAnswer;
     private string inputtedCode = "";
+    private string inputtedRevealingCode = "";
     private bool buttonLock;
     private int chimeButton;
+    private int stage;
+    private int firstStageCheck;
+    private int secondStageLightUp;
+    private string[] numbers = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+    private string[] numbers2 = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+    private string[] initialState = new string[10];
+    private string[] secondState = new string[10];
+    private int shift;
+
 
     private void Start()
     {
-        GenerateSolution();
+        numbers = numbers.Shuffle();
+        numbers2 = numbers2.Shuffle();
+        initialState = numbers;
+        secondState = numbers2;
+        stage = 1;
+        firstStageCheck = 0;
+        secondStageLightUp = 0;
         for (int btn = 0; btn < Buttons.Length; btn++)
         {
             Buttons[btn].OnInteract = ButtonPressed(btn);
+            ButtonTexts[btn].text = initialState[btn];
             ButtonTexts[btn].color = TextColors[0];
         }
+        revealingAnswer = GetRevealOrder();
+        shift = DetermineShift();
+        answer = GenerateAnswer();
+        Debug.LogFormat("[Extended Button Order #{0}] The correct answer for the first stage is {1}.", _moduleID, revealingAnswer);
+        Debug.LogFormat("[Extended Button Order #{0}] The correct answer for the second stage is {1}.", _moduleID, answer);
+
     }
 
-    private void GenerateSolution()
+    private void StageTwo()
     {
-        missingLabel = Rnd.Range(0, 10);
-        ButtonTexts[missingLabel].text = "?";
-        answer = GetOrder();
-        Debug.LogFormat("[Extended Button Order #{0}] The correct order to press the buttons is {1}.", _moduleID, answer);
+        stage = 2;
+        for (int btn = 0; btn < Buttons.Length; btn++)
+        {
+            ButtonTexts[btn].text = secondState[btn];
+        }
     }
 
     private KMSelectable.OnInteractHandler ButtonPressed(int btn)
@@ -52,38 +78,68 @@ public class buttonOrder : MonoBehaviour
         {
             if (moduleSolved == true || buttonLock == true)
                 return false;
-            Audio.PlaySoundAtTransform("beep", Buttons[btn].transform);
-            Buttons[btn].AddInteractionPunch();
-            ButtonTexts[btn].color = TextColors[1];
-            if (inputtedCode.Contains(btn.ToString()) && inputtedCode.Length > 0)
-                return false;
-            if (inputtedCode.Length < 10)
-                inputtedCode += btn.ToString();
-            if (inputtedCode.Length >= 10)
+            if (stage == 1)
             {
-                if (inputtedCode == answer)
+                Audio.PlaySoundAtTransform("beep", Buttons[btn].transform);
+                Buttons[btn].AddInteractionPunch();
+                inputtedRevealingCode += btn.ToString();
+                if (inputtedRevealingCode[firstStageCheck] == revealingAnswer[firstStageCheck])
                 {
-                    moduleSolved = true;
-                    StartCoroutine(Solve());
-                    chimeButton = btn;
-                    Debug.LogFormat("[Extended Button Order #{0}] You pressed the buttons in the correct order. Module solved!", _moduleID);
-
+                    firstStageCheck++;
                 }
                 else
                 {
-                    buttonLock = true;
-                    Debug.LogFormat("[Extended Button Order #{0}] You entered {1}. I was expecting {2}. Strike.", _moduleID, inputtedCode, answer);
-                    inputtedCode = "";
-                    StartCoroutine(Strike());
+                    inputtedRevealingCode = "";
+                    firstStageCheck = 0;
+                    Module.HandleStrike();
                 }
+                if (inputtedRevealingCode == revealingAnswer)
+                {
+                    StageInds[0].GetComponent<Renderer>().material = materials[0];
+                    StageTwo();
+                }
+
             }
+            else
+            {
+                Audio.PlaySoundAtTransform("beep", Buttons[btn].transform);
+                Buttons[btn].AddInteractionPunch();
+                ButtonTexts[secondStageLightUp].color = TextColors[1];
+                if (inputtedCode.Length < 10)
+                    inputtedCode += secondState[btn];
+                secondStageLightUp++;
+                if (inputtedCode.Length >= 10)
+                {
+                    if (inputtedCode == answer)
+                    {
+                        moduleSolved = true;
+                        StageInds[1].GetComponent<Renderer>().material = materials[0];
+                        StartCoroutine(Solve());
+                        chimeButton = btn;
+                        Debug.LogFormat("[Extended Button Order #{0}] You pressed the buttons in the correct order. Module solved!", _moduleID);
+
+                    }
+                    else
+                    {
+                        buttonLock = true;
+                        Debug.LogFormat("[Extended Button Order #{0}] You entered {1}. I was expecting {2}. Strike.", _moduleID, inputtedCode, answer);
+                        StartCoroutine(Strike());
+                        inputtedCode = "";
+                        inputtedRevealingCode = "";
+                        StageInds[0].GetComponent<Renderer>().material = materials[1];
+                        StageInds[1].GetComponent<Renderer>().material = materials[1];
+                        Start();
+                    }
+                }
+
+            }
+
             return false;
         };
     }
 
     private IEnumerator Solve()
     {
-        ButtonTexts[missingLabel].text = missingLabel.ToString();
         int init = 4;
         for (int i = 0; i < init; i++)
         {
@@ -97,7 +153,6 @@ public class buttonOrder : MonoBehaviour
 
     private IEnumerator Strike()
     {
-        ButtonTexts[missingLabel].text = missingLabel.ToString();
         int init = 4;
         for (int i = 0; i < init; i++)
         {
@@ -107,25 +162,65 @@ public class buttonOrder : MonoBehaviour
         }
         Module.HandleStrike();
         buttonLock = false;
-        GenerateSolution();
     }
 
-    private string GetOrder()
+
+
+    private string GetRevealOrder()
     {
-        if (Bomb.GetBatteryCount() >= 3 && Bomb.IsIndicatorOn(Indicator.BOB))
-            return "0123456789";
-        else if (Bomb.GetPortPlates().Any(p => p.Length == 0) && missingLabel != 8 && missingLabel != 2 && missingLabel != 9 && missingLabel != 1)
-            return "0912345876";
-        else if (Bomb.IsIndicatorPresent(Indicator.CAR) && Bomb.GetPortCount(Port.Serial) > 0 && missingLabel != 7 && missingLabel != 0)
-            return "0526398741";
-        else if (Bomb.GetBatteryCount(Battery.D) > 0 && Bomb.GetPortPlateCount() > 1)
-            return "7894560312";
-        else
-            return "5869473012";
+        int tempAnswer = Bomb.GetSerialNumberNumbers().Sum();
+        tempAnswer *= tempAnswer;
+        tempAnswer *= Bomb.GetSerialNumberNumbers().Last();
+        return tempAnswer.ToString();
+    }
+
+    private string GenerateAnswer()
+    {
+
+        int[] answer = new int[10];
+        for (int i = 0; i < Buttons.Length; i++)
+        {
+            answer[i] = (Int32.Parse(initialState[i]) + Int32.Parse(secondState[i])) % 10;
+
+        }
+        string stringAnswer = answer.Join("");
+        return stringAnswer.Substring(stringAnswer.Length - shift, shift) + stringAnswer.Substring(0, stringAnswer.Length - shift);
+
+    }
+
+    private int DetermineShift()
+    {
+        int whereIsZero = Array.IndexOf(secondState, "0");
+        switch (whereIsZero)
+        {
+            case 0:
+                return 4;
+            case 1:
+                return 7;
+            case 2:
+                return 1;
+            case 3:
+                return 8;
+            case 4:
+                return 9;
+            case 5:
+                return 6;
+            case 6:
+                return 2;
+            case 7:
+                return 5;
+            case 8:
+                return 3;
+            case 9:
+                return 2;
+        }
+        return 0;
+
+
     }
 
 
-    //GoodHood ignore everything from here this is complicated stuff your dummy little brain doesn't understand.
+    //GoodHood ignore everything from here this is complicated stuff you don't understand. (Added by Quinn Wuest)
     private static string[] _twitchCommands = { "press", "push", "tap", "submit", "answer" };
 
 #pragma warning disable 0414
