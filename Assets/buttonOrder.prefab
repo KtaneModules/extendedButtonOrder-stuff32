@@ -387,7 +387,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4474444109458394}
   - component: {fileID: 33461655210181782}
-  - component: {fileID: 135664507482053668}
   - component: {fileID: 23174341891966342}
   - component: {fileID: 114066163352393594}
   m_Layer: 0
@@ -515,7 +514,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4023769461873520}
   - component: {fileID: 33877616060084238}
-  - component: {fileID: 135257930293447290}
   - component: {fileID: 23879606866449516}
   - component: {fileID: 114435211777097060}
   m_Layer: 0
@@ -1012,7 +1010,7 @@ Transform:
   m_GameObject: {fileID: 1677397694068660}
   m_LocalRotation: {x: 0.7071068, y: -0.7071068, z: 0, w: 0}
   m_LocalPosition: {x: 0, y: -0.001, z: 0.0018}
-  m_LocalScale: {x: 0.002, y: 0.002, z: 0.002}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 4880244065165000}
   m_RootOrder: 0
@@ -2263,7 +2261,7 @@ TextMesh:
   m_GameObject: {fileID: 1677397694068660}
   m_Text: 0
   m_OffsetZ: 0
-  m_CharacterSize: 0.25
+  m_CharacterSize: 0.0006
   m_LineSpacing: 1
   m_Anchor: 4
   m_Alignment: 1
@@ -2726,9 +2724,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Module: {fileID: 114532321455296844}
-  Bomb: {fileID: 114970013040112322}
+  BombInfo: {fileID: 114970013040112322}
   Audio: {fileID: 114670949400259442}
-  Buttons:
+  ButtonSels:
   - {fileID: 114480673476804300}
   - {fileID: 114406115163614518}
   - {fileID: 114498381843040184}
@@ -2751,15 +2749,13 @@ MonoBehaviour:
   - {fileID: 102713157270152602}
   - {fileID: 102037747934705242}
   TextColors:
-  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0, g: 0, b: 0, a: 1}
   - {r: 0.6185598, g: 0.83823526, b: 0, a: 1}
   - {r: 1, g: 0, b: 0, a: 1}
   StageInds:
   - {fileID: 23174341891966342}
   - {fileID: 23879606866449516}
-  materials:
-  - {fileID: 2100000, guid: 1b90652c3fb560c4eaeeb9dcc81c03ef, type: 2}
-  - {fileID: 2100000, guid: 57e52c9c29e63a445921bf485ce522ab, type: 2}
+  Materials: []
 --- !u!114 &114323712316911140
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3297,27 +3293,3 @@ MonoBehaviour:
   m_Script: {fileID: 2144496390, guid: 45b809be76fd7a3468b6f517bced6f28, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!135 &135257930293447290
-SphereCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1733302437011076}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!135 &135664507482053668
-SphereCollider:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1526340225333536}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}

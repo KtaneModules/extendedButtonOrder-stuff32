@@ -10,248 +10,152 @@ using System.Linq;
 
 public class buttonOrder : MonoBehaviour
 {
-
     private static int _moduleIdCounter = 1;
-    private int _moduleID = 0;
-    private bool moduleSolved;
+    private int _moduleId;
+    private bool _moduleSolved;
 
     public KMBombModule Module;
-    public KMBombInfo Bomb;
+    public KMBombInfo BombInfo;
     public KMAudio Audio;
-    public KMSelectable[] Buttons;
+    public KMSelectable[] ButtonSels;
     public TextMesh[] ButtonTexts;
     public Color[] TextColors;
     public MeshRenderer[] StageInds;
-    public Material[] materials;
+    public Material[] Materials;
 
-    private string answer;
-    private string revealingAnswer;
-    private string inputtedCode = "";
-    private string inputtedRevealingCode = "";
-    private bool buttonLock;
-    private int chimeButton;
-    private int stage;
-    private int firstStageCheck;
-    private int secondStageLightUp;
-    private string[] numbers = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-    private string[] numbers2 = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-    private string[] initialState = new string[10];
-    private string[] secondState = new string[10];
-    private int shift;
-
+    private int[] _stageOneNumbers;
+    private int[] _stageTwoNumbers;
+    private int _snSum;
+    private int _stageOneNum;
+    private int[] _stageOneAnswer;
+    private readonly int[] _stageTwoUnshifted = new int[10];
+    private readonly int[] _stageTwoAnswer = new int[10];
+    private static readonly int[] _zeroPositions = { 7, 3, 0, 8, 7, 5, 1, 4, 2, 1 };
+    private int _zeroShift;
+    private int _stage;
+    private List<int> _input = new List<int>();
+    private int _numsInputted;
 
     private void Start()
     {
-        numbers = numbers.Shuffle();
-        numbers2 = numbers2.Shuffle();
-        initialState = numbers;
-        secondState = numbers2;
-        stage = 1;
-        firstStageCheck = 0;
-        secondStageLightUp = 0;
-        for (int btn = 0; btn < Buttons.Length; btn++)
-        {
-            Buttons[btn].OnInteract = ButtonPressed(btn);
-            ButtonTexts[btn].text = initialState[btn];
-            ButtonTexts[btn].color = TextColors[0];
-        }
-        revealingAnswer = GetRevealOrder();
-        shift = DetermineShift();
-        answer = GenerateAnswer();
-        Debug.LogFormat("[Extended Button Order #{0}] The correct answer for the first stage is {1}.", _moduleID, revealingAnswer);
-        Debug.LogFormat("[Extended Button Order #{0}] The correct answer for the second stage is {1}.", _moduleID, answer);
-
+        _moduleId = _moduleIdCounter++;
+        for (int i = 0; i < ButtonSels.Length; i++)
+            ButtonSels[i].OnInteract += ButtonPress(i);
+        _stageOneNumbers = Enumerable.Range(0, 10).ToArray().Shuffle();
+        for (int i = 0; i < _stageOneNumbers.Length; i++)
+            ButtonTexts[i].text = _stageOneNumbers[i].ToString();
+        var serialNumber = BombInfo.GetSerialNumber();
+        for (int i = 0; i < serialNumber.Length; i++)
+            _snSum += serialNumber[i] >= '0' && serialNumber[i] <= '9' ? serialNumber[i] - '0' : 0;
+        _stageOneNum = _snSum * _snSum;
+        _stageOneNum *= serialNumber[5] - '0';
+        var numToString = _stageOneNum.ToString();
+        _stageOneAnswer = new int[numToString.Length];
+        for (int i = 0; i < numToString.Length; i++)
+            _stageOneAnswer[i] = numToString[i] - '0';
+        Debug.LogFormat("[Extended Button Order #{0}] Stage 1 answer: {1}", _moduleId, numToString);
+        _stageTwoNumbers = Enumerable.Range(0, 10).ToArray().Shuffle();
+        for (int i = 0; i < _stageTwoUnshifted.Length; i++)
+            _stageTwoUnshifted[i] = (_stageOneNumbers[i] + _stageTwoNumbers[i]) % 10;
+        _zeroShift = _zeroPositions[Array.IndexOf(_stageTwoNumbers, 0)];
+        for (int i = 0; i < _stageTwoUnshifted.Length; i++)
+            _stageTwoAnswer[i] = _stageTwoUnshifted[(i + _zeroShift) % 10];
+        Debug.LogFormat("[Extended Button Order #{0}] Stage 2 answer: {1}", _moduleId, _stageTwoAnswer.Join(""));
     }
 
-    private void StageTwo()
+    private KMSelectable.OnInteractHandler ButtonPress(int btn)
     {
-        stage = 2;
-        for (int btn = 0; btn < Buttons.Length; btn++)
+        return delegate ()
         {
-            ButtonTexts[btn].text = secondState[btn];
-        }
-    }
-
-    private KMSelectable.OnInteractHandler ButtonPressed(int btn)
-    {
-        return delegate
-        {
-            if (moduleSolved == true || buttonLock == true)
+            ButtonSels[btn].AddInteractionPunch(0.5f);
+            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, ButtonSels[btn].transform);
+            if (_moduleSolved)
                 return false;
-            if (stage == 1)
+            if (_stage == 0)
             {
-                Audio.PlaySoundAtTransform("beep", Buttons[btn].transform);
-                Buttons[btn].AddInteractionPunch();
-                inputtedRevealingCode += btn.ToString();
-                if (inputtedRevealingCode[firstStageCheck] == revealingAnswer[firstStageCheck])
+                _input.Add(btn);
+                if (_input[_numsInputted] != _stageOneAnswer[_numsInputted])
                 {
-                    firstStageCheck++;
+                    Debug.LogFormat("[Extended Button Order #{0}] Pressed position {1} instead of {2}. Strike.", _moduleId, btn, _stageOneAnswer[_numsInputted]);
+                    Module.HandleStrike();
+                    StartCoroutine(FlashRed());
+                    _input = new List<int>();
+                    _numsInputted = 0;
                 }
                 else
                 {
-                    inputtedRevealingCode = "";
-                    firstStageCheck = 0;
-                    Module.HandleStrike();
+                    _numsInputted++;
+                    if (_input.Count == _stageOneAnswer.Length)
+                    {
+                        _numsInputted = 0;
+                        Debug.LogFormat("[Extended Button Order #{0}] Completed Stage 1. Moving onto Stage 2.", _moduleId);
+                        _input = new List<int>();
+                        _stage++;
+                        for (int i = 0; i < _stageTwoNumbers.Length; i++)
+                            ButtonTexts[i].text = _stageTwoNumbers[i].ToString();
+                    }
                 }
-                if (inputtedRevealingCode == revealingAnswer)
-                {
-                    StageInds[0].GetComponent<Renderer>().material = materials[0];
-                    StageTwo();
-                }
-
             }
             else
             {
-                Audio.PlaySoundAtTransform("beep", Buttons[btn].transform);
-                Buttons[btn].AddInteractionPunch();
-                ButtonTexts[secondStageLightUp].color = TextColors[1];
-                if (inputtedCode.Length < 10)
-                    inputtedCode += secondState[btn];
-                secondStageLightUp++;
-                if (inputtedCode.Length >= 10)
+                _input.Add(_stageTwoNumbers[btn]);
+                if (_input[_numsInputted] != _stageTwoAnswer[_numsInputted])
                 {
-                    if (inputtedCode == answer)
+                    Debug.LogFormat("Extended Button Order #{0}] Pressed label {1} instead of {2}. Strike. Resetting back to Stage 1.", _moduleId, _stageTwoNumbers[btn], _stageTwoAnswer[_numsInputted]);
+                    Module.HandleStrike();
+                    StartCoroutine(FlashRed());
+                    _input = new List<int>();
+                    _numsInputted = 0;
+                    _stage = 0;
+                    for (int i = 0; i < _stageOneNumbers.Length; i++)
+                        ButtonTexts[i].text = _stageOneNumbers[i].ToString();
+                }
+                else
+                {
+                    _numsInputted++;
+                    if (_input.Count == _stageTwoAnswer.Length)
                     {
-                        moduleSolved = true;
-                        StageInds[1].GetComponent<Renderer>().material = materials[0];
-                        StartCoroutine(Solve());
-                        chimeButton = btn;
-                        Debug.LogFormat("[Extended Button Order #{0}] You pressed the buttons in the correct order. Module solved!", _moduleID);
-
-                    }
-                    else
-                    {
-                        buttonLock = true;
-                        Debug.LogFormat("[Extended Button Order #{0}] You entered {1}. I was expecting {2}. Strike.", _moduleID, inputtedCode, answer);
-                        StartCoroutine(Strike());
-                        inputtedCode = "";
-                        inputtedRevealingCode = "";
-                        StageInds[0].GetComponent<Renderer>().material = materials[1];
-                        StageInds[1].GetComponent<Renderer>().material = materials[1];
-                        Start();
+                        _moduleSolved = true;
+                        Module.HandlePass();
+                        StartCoroutine(FlashNumbers());
+                        Debug.LogFormat("[Extended Button Order #{0}] Completed Stage 1. Moving onto Stage 2.", _moduleId);
                     }
                 }
-
             }
-
             return false;
         };
     }
 
-    private IEnumerator Solve()
+    private IEnumerator FlashNumbers()
     {
-        int init = 4;
-        for (int i = 0; i < init; i++)
+        for (int i = 0; i < 47; i++)
         {
-            for (int j = 0; j < ButtonTexts.Length; j++)
-                ButtonTexts[j].color = i % 2 == 0 ? TextColors[0] : TextColors[1];
-            yield return new WaitForSeconds(0.3f);
+            foreach (var btnText in ButtonTexts)
+                btnText.color = TextColors[i % 2];
+            yield return new WaitForSeconds(0.1f);
         }
-        Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.CorrectChime, Buttons[chimeButton].transform);
-        Module.HandlePass();
     }
-
-    private IEnumerator Strike()
+    private IEnumerator FlashRed()
     {
-        int init = 4;
-        for (int i = 0; i < init; i++)
-        {
-            for (int j = 0; j < ButtonTexts.Length; j++)
-                ButtonTexts[j].color = i % 2 == 0 ? TextColors[2] : TextColors[0];
-            yield return new WaitForSeconds(0.3f);
-        }
-        Module.HandleStrike();
-        buttonLock = false;
+        foreach (var btnText in ButtonTexts)
+            btnText.color = TextColors[2];
+        yield return new WaitForSeconds(1f);
+        foreach (var btnText in ButtonTexts)
+            btnText.color = TextColors[0];
     }
-
-
-
-    private string GetRevealOrder()
-    {
-        int tempAnswer = Bomb.GetSerialNumberNumbers().Sum();
-        tempAnswer *= tempAnswer;
-        tempAnswer *= Bomb.GetSerialNumberNumbers().Last();
-        return tempAnswer.ToString();
-    }
-
-    private string GenerateAnswer()
-    {
-
-        int[] answer = new int[10];
-        for (int i = 0; i < Buttons.Length; i++)
-        {
-            answer[i] = (Int32.Parse(initialState[i]) + Int32.Parse(secondState[i])) % 10;
-
-        }
-        string stringAnswer = answer.Join("");
-        return stringAnswer.Substring(stringAnswer.Length - shift, shift) + stringAnswer.Substring(0, stringAnswer.Length - shift);
-
-    }
-
-    private int DetermineShift()
-    {
-        int whereIsZero = Array.IndexOf(secondState, "0");
-        switch (whereIsZero)
-        {
-            case 0:
-                return 4;
-            case 1:
-                return 7;
-            case 2:
-                return 1;
-            case 3:
-                return 8;
-            case 4:
-                return 9;
-            case 5:
-                return 6;
-            case 6:
-                return 2;
-            case 7:
-                return 5;
-            case 8:
-                return 3;
-            case 9:
-                return 2;
-        }
-        return 0;
-
-
-    }
-
-
-    //GoodHood ignore everything from here this is complicated stuff you don't understand. (Added by Quinn Wuest)
-    private static string[] _twitchCommands = { "press", "push", "tap", "submit", "answer" };
 
 #pragma warning disable 0414
-    private readonly string TwitchHelpMessage = "!{0} press 0 1 2 3 4 5 6 7 8 9 | Presses buttons 0-9.";
+    private readonly string TwitchHelpMessage = "!{0} position 0 1 2 [Presses buttons in positions 0, 1, 2. Zero-indexed.] | !{0} label 0 1 2 [Presses buttons with labels 0, 1, 2]";
 #pragma warning restore 0414
 
-    private IEnumerator ProcessTwitchCommand(string command)
+    private KMSelectable[] ProcessTwitchCommand(string command)
     {
-        var pieces = command.Split(new[] { ' ', ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-        if (pieces.Length == 0)
-            yield break;
-        var skip = _twitchCommands.Contains(pieces[0]) ? 1 : 0;
-        if (pieces.Skip(skip).Any(p => { int val; return !int.TryParse(p.Trim(), out val) || val < 0 || val > 9; }))
-            yield break;
-        yield return null;
-        foreach (var p in pieces.Skip(skip))
-        {
-            Buttons[int.Parse(p.Trim())].OnInteract();
-            yield return new WaitForSeconds(0.1f);
-        }
-    }
-
-    private IEnumerator TwitchHandleForcedSolve()
-    {
-        int[] arr = new int[10];
-        for (int i = 0; i < arr.Length; i++)
-            arr[i] = int.Parse(answer.Substring(i, 1));
-        for (int btn = 0; btn < 10; btn++)
-        {
-            Buttons[arr[btn]].OnInteract();
-            yield return new WaitForSeconds(0.1f);
-        }
+        var m = Regex.Match(command, @"^\s*(?:position|pos|p)\s+([0123456789 ]+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (m.Success)
+            return m.Groups[1].Value.Where(ch => ch != ' ').Select(ch => ButtonSels[ch - '0']).ToArray();
+        m = Regex.Match(command, @"^\s*(?:label|lab|lbl|l)\s+([0123456789 ]+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (m.Success)
+            return m.Groups[1].Value.Where(ch => ch != ' ').Select(ch => ButtonSels[Array.IndexOf(_stage == 0 ? _stageOneNumbers : _stageTwoNumbers, ch - '0')]).ToArray();
+        return null;
     }
 }
