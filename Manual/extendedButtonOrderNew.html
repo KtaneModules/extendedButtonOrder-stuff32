@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1">
+    <title>Extended Button Order — Keep Talking and Nobody Explodes Module</title>
+    <link rel="stylesheet" type="text/css" href="css/font.css">
+    <link rel="stylesheet" type="text/css" href="css/normalize.css">
+    <link rel="stylesheet" type="text/css" href="css/main.css">
+    <script src="js/ktane-utils.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/font.css">
+</head>
+<body>
+    <div class="section">
+        <div class="page page-bg-01">
+            <div class="page-header">
+                <span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
+                <span class="page-header-section-title">Extended Button Order</span>
+            </div>
+            <div class="page-content">
+                <img src="img/Component/extendedButtonOrder.svg" class="diagram">
+                <h2>On the Subject of Extended Button Order</h2>
+                <p class="flavour-text">Haven't I seen this before?.</p>
+
+               <p>This module consists of 10 buttons labelled 0-9 and stage indicators at the top. There are two stages to solving this module. </p>
+
+               <p><strong><u><span style="font-size: 20px;">Step 1</span></u></strong></p>
+               <p><i>Note: you will need the current button labels in Step 2</i></p>
+
+               <ul>
+                <li>Take (the sum of the serial number digits)<sup>2</sup> * last digit in the serial number</li>
+                <li>Assigning the buttons the values 0 to 9 in reading order, input the number obtained</li>
+               </ul>
+               Striking will reset all input
+
+               <p><strong><u><span style="font-size: 20px;">Step 2</span></u></strong></p>
+
+               The numbers will now have changed.
+               <ul>
+                <li>For each button in reading order, sum the label of the button in Step 1 and the label of the button now and take the least significant digit</li>
+                <li>Shift your new 10 digit sequence right <i>x</i> times where <i>x</i> is the number from the table using the position of the label 0 in reading order
+                on the module currently.
+                <br><i>Example: shifting 1234567890 by 2 gives 9012345678</i></li>
+               </ul>
+               Striking will reset you back to Step 1
+
+               <table style="width: 100%;">
+                   <tbody>
+                       <tr>
+                           <td style="width: 15%; text-align: center;">Location of 0</td>
+                           <td style="width: 8%; text-align: center;">1</td>
+                           <td style="width: 8%; text-align: center;">2</td>
+                           <td style="width: 8%; text-align: center;">3</td>
+                           <td style="width: 8%; text-align: center;">4</td>
+                           <td style="width: 8%; text-align: center;">5</td>
+                           <td style="width: 8%; text-align: center;">6</td>
+                           <td style="width: 8%; text-align: center;">7</td>
+                           <td style="width: 8%; text-align: center;">8</td>
+                           <td style="width: 8%; text-align: center;">9</td>
+                           <td style="width: 8%; text-align: center;">10</td>
+                       </tr>
+                       <tr>
+                           <td style="width: 15%; text-align: center;">Amount to shift by</td>
+                           <td style="width: 8%; text-align: center;">7</td>
+                           <td style="width: 8%; text-align: center;">4</td>
+                           <td style="width: 8%; text-align: center;">1</td>
+                           <td style="width: 8%; text-align: center;">8</td>
+                           <td style="width: 8%; text-align: center;">9</td>
+                           <td style="width: 8%; text-align: center;">6</td>
+                           <td style="width: 8%; text-align: center;">2</td>
+                           <td style="width: 8%; text-align: center;">5</td>
+                           <td style="width: 8%; text-align: center;">3</td>
+                           <td style="width: 8%; text-align: center;">2</td>
+                       </tr>
+                   </tbody>
+               </table>
+                <p><br></p>
+
+            </div>
+            <div class="page-footer relative-footer">Page 1 of 1</div>
+        </div>
+    </div>
+</body>
+</html>

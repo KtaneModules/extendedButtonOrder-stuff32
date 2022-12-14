@@ -41,15 +41,20 @@ public class buttonOrder : MonoBehaviour
         _moduleId = _moduleIdCounter++;
         for (int i = 0; i < ButtonSels.Length; i++)
             ButtonSels[i].OnInteract += ButtonPress(i);
+
+
         _stageOneNumbers = Enumerable.Range(0, 10).ToArray().Shuffle();
         for (int i = 0; i < _stageOneNumbers.Length; i++)
             ButtonTexts[i].text = _stageOneNumbers[i].ToString();
+
         var serialNumber = BombInfo.GetSerialNumber();
         for (int i = 0; i < serialNumber.Length; i++)
             _snSum += serialNumber[i] >= '0' && serialNumber[i] <= '9' ? serialNumber[i] - '0' : 0;
         _stageOneNum = _snSum * _snSum;
         _stageOneNum *= serialNumber[5] - '0';
+
         var numToString = _stageOneNum.ToString();
+
         _stageOneAnswer = new int[numToString.Length];
         for (int i = 0; i < numToString.Length; i++)
             _stageOneAnswer[i] = numToString[i] - '0';
@@ -91,6 +96,7 @@ public class buttonOrder : MonoBehaviour
                         Debug.LogFormat("[Extended Button Order #{0}] Completed Stage 1. Moving onto Stage 2.", _moduleId);
                         _input = new List<int>();
                         _stage++;
+                        StageInds[0].material = Materials[1];
                         for (int i = 0; i < _stageTwoNumbers.Length; i++)
                             ButtonTexts[i].text = _stageTwoNumbers[i].ToString();
                     }
@@ -107,6 +113,7 @@ public class buttonOrder : MonoBehaviour
                     _input = new List<int>();
                     _numsInputted = 0;
                     _stage = 0;
+                    StageInds[0].material = Materials[0];
                     for (int i = 0; i < _stageOneNumbers.Length; i++)
                         ButtonTexts[i].text = _stageOneNumbers[i].ToString();
                 }
@@ -117,6 +124,7 @@ public class buttonOrder : MonoBehaviour
                     {
                         _moduleSolved = true;
                         Module.HandlePass();
+                        StageInds[1].material = Materials[1];
                         StartCoroutine(FlashNumbers());
                         Debug.LogFormat("[Extended Button Order #{0}] Completed Stage 1. Moving onto Stage 2.", _moduleId);
                     }
@@ -128,11 +136,11 @@ public class buttonOrder : MonoBehaviour
 
     private IEnumerator FlashNumbers()
     {
-        for (int i = 0; i < 47; i++)
+        for (int i = 0; i < 8; i++)
         {
             foreach (var btnText in ButtonTexts)
                 btnText.color = TextColors[i % 2];
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.2f);
         }
     }
     private IEnumerator FlashRed()
