@@ -42,7 +42,6 @@ public class buttonOrder : MonoBehaviour
         for (int i = 0; i < ButtonSels.Length; i++)
             ButtonSels[i].OnInteract += ButtonPress(i);
 
-
         _stageOneNumbers = Enumerable.Range(0, 10).ToArray().Shuffle();
         for (int i = 0; i < _stageOneNumbers.Length; i++)
             ButtonTexts[i].text = _stageOneNumbers[i].ToString();
@@ -58,6 +57,7 @@ public class buttonOrder : MonoBehaviour
         _stageOneAnswer = new int[numToString.Length];
         for (int i = 0; i < numToString.Length; i++)
             _stageOneAnswer[i] = numToString[i] - '0';
+        Debug.LogFormat("[Extended Button Order #{0}] Buttons on stage 1: {1}", _moduleId, _stageOneNumbers.Join(" "));
         Debug.LogFormat("[Extended Button Order #{0}] Stage 1 answer: {1}", _moduleId, numToString);
         _stageTwoNumbers = Enumerable.Range(0, 10).ToArray().Shuffle();
         for (int i = 0; i < _stageTwoUnshifted.Length; i++)
@@ -65,6 +65,7 @@ public class buttonOrder : MonoBehaviour
         _zeroShift = _zeroPositions[Array.IndexOf(_stageTwoNumbers, 0)];
         for (int i = 0; i < _stageTwoUnshifted.Length; i++)
             _stageTwoAnswer[i] = _stageTwoUnshifted[(i + _zeroShift) % 10];
+        Debug.LogFormat("[Extended Button Order #{0}] Buttons on stage 2: {1}", _moduleId, _stageTwoNumbers.Join(" "));
         Debug.LogFormat("[Extended Button Order #{0}] Stage 2 answer: {1}", _moduleId, _stageTwoAnswer.Join(""));
     }
 
@@ -107,7 +108,7 @@ public class buttonOrder : MonoBehaviour
                 _input.Add(_stageTwoNumbers[btn]);
                 if (_input[_numsInputted] != _stageTwoAnswer[_numsInputted])
                 {
-                    Debug.LogFormat("Extended Button Order #{0}] Pressed label {1} instead of {2}. Strike. Resetting back to Stage 1.", _moduleId, _stageTwoNumbers[btn], _stageTwoAnswer[_numsInputted]);
+                    Debug.LogFormat("[Extended Button Order #{0}] Pressed label {1} instead of {2}. Strike. Resetting back to Stage 1.", _moduleId, _stageTwoNumbers[btn], _stageTwoAnswer[_numsInputted]);
                     Module.HandleStrike();
                     StartCoroutine(FlashRed());
                     _input = new List<int>();
@@ -156,14 +157,21 @@ public class buttonOrder : MonoBehaviour
     private readonly string TwitchHelpMessage = "!{0} position 0 1 2 [Presses buttons in positions 0, 1, 2. Zero-indexed.] | !{0} label 0 1 2 [Presses buttons with labels 0, 1, 2]";
 #pragma warning restore 0414
 
-    private KMSelectable[] ProcessTwitchCommand(string command)
+    private IEnumerator ProcessTwitchCommand(string command)
     {
         var m = Regex.Match(command, @"^\s*(?:position|pos|p)\s+([0123456789 ]+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         if (m.Success)
-            return m.Groups[1].Value.Where(ch => ch != ' ').Select(ch => ButtonSels[ch - '0']).ToArray();
+        {
+            yield return null;
+            yield return m.Groups[1].Value.Where(ch => ch != ' ').Select(ch => ButtonSels[ch - '0']).ToArray();
+            yield break;
+        }
         m = Regex.Match(command, @"^\s*(?:label|lab|lbl|l)\s+([0123456789 ]+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         if (m.Success)
-            return m.Groups[1].Value.Where(ch => ch != ' ').Select(ch => ButtonSels[Array.IndexOf(_stage == 0 ? _stageOneNumbers : _stageTwoNumbers, ch - '0')]).ToArray();
-        return null;
+        {
+            yield return null;
+            yield return m.Groups[1].Value.Where(ch => ch != ' ').Select(ch => ButtonSels[Array.IndexOf(_stage == 0 ? _stageOneNumbers : _stageTwoNumbers, ch - '0')]).ToArray();
+            yield break;
+        }
     }
 }
