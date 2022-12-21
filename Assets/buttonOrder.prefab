@@ -2750,12 +2750,14 @@ MonoBehaviour:
   - {fileID: 102037747934705242}
   TextColors:
   - {r: 0, g: 0, b: 0, a: 1}
-  - {r: 0.6185598, g: 0.83823526, b: 0, a: 1}
+  - {r: 0.17352945, g: 0.86764705, b: 0, a: 1}
   - {r: 1, g: 0, b: 0, a: 1}
   StageInds:
   - {fileID: 23174341891966342}
   - {fileID: 23879606866449516}
-  Materials: []
+  Materials:
+  - {fileID: 2100000, guid: 57e52c9c29e63a445921bf485ce522ab, type: 2}
+  - {fileID: 2100000, guid: 1b90652c3fb560c4eaeeb9dcc81c03ef, type: 2}
 --- !u!114 &114323712316911140
 MonoBehaviour:
   m_ObjectHideFlags: 1
