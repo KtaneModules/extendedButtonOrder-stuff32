@@ -127,7 +127,7 @@ public class buttonOrder : MonoBehaviour
                         Module.HandlePass();
                         StageInds[1].material = Materials[1];
                         StartCoroutine(FlashNumbers());
-                        Debug.LogFormat("[Extended Button Order #{0}] Completed Stage 1. Moving onto Stage 2.", _moduleId);
+                        Debug.LogFormat("[Extended Button Order #{0}] Module solved.", _moduleId);
                     }
                 }
             }
@@ -172,6 +172,23 @@ public class buttonOrder : MonoBehaviour
             yield return null;
             yield return m.Groups[1].Value.Where(ch => ch != ' ').Select(ch => ButtonSels[Array.IndexOf(_stage == 0 ? _stageOneNumbers : _stageTwoNumbers, ch - '0')]).ToArray();
             yield break;
+        }
+    }
+
+    private IEnumerator TwitchHandleForcedSolve()
+    {
+        if (_stage == 0)
+        {
+            for (int i = _numsInputted; i < _stageOneAnswer.Length; i++)
+            {
+                ButtonSels[_stageOneAnswer[i]].OnInteract();
+                yield return new WaitForSeconds(0.1f);
+            }
+        }
+        for (int i = _numsInputted; i < _stageTwoAnswer.Length; i++)
+        {
+            ButtonSels[Array.IndexOf(_stageTwoNumbers,_stageTwoAnswer[i])].OnInteract();
+            yield return new WaitForSeconds(0.1f);
         }
     }
 }
