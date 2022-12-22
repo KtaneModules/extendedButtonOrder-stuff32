@@ -30,7 +30,7 @@ public class buttonOrder : MonoBehaviour
     private int[] _stageOneAnswer;
     private readonly int[] _stageTwoUnshifted = new int[10];
     private readonly int[] _stageTwoAnswer = new int[10];
-    private static readonly int[] _zeroPositions = { 7, 3, 0, 8, 7, 5, 1, 4, 2, 1 };
+    private static readonly int[] _zeroPositions = { 7, 4, 1, 8, 9, 6, 2, 5, 3, 2 };
     private int _zeroShift;
     private int _stage;
     private List<int> _input = new List<int>();
@@ -63,8 +63,9 @@ public class buttonOrder : MonoBehaviour
         for (int i = 0; i < _stageTwoUnshifted.Length; i++)
             _stageTwoUnshifted[i] = (_stageOneNumbers[i] + _stageTwoNumbers[i]) % 10;
         _zeroShift = _zeroPositions[Array.IndexOf(_stageTwoNumbers, 0)];
+        Debug.Log("SHIFT IS: " + _zeroShift);
         for (int i = 0; i < _stageTwoUnshifted.Length; i++)
-            _stageTwoAnswer[i] = _stageTwoUnshifted[(i + _zeroShift) % 10];
+            _stageTwoAnswer[(i + _zeroShift) % 10] = _stageTwoUnshifted[i];
         Debug.LogFormat("[Extended Button Order #{0}] Buttons on stage 2: {1}", _moduleId, _stageTwoNumbers.Join(" "));
         Debug.LogFormat("[Extended Button Order #{0}] Stage 2 answer: {1}", _moduleId, _stageTwoAnswer.Join(""));
     }
@@ -143,6 +144,12 @@ public class buttonOrder : MonoBehaviour
                 btnText.color = TextColors[i % 2];
             yield return new WaitForSeconds(0.2f);
         }
+        for (int i = 0; i < ButtonTexts.Length; i++)
+        {
+            ButtonTexts[i].text = "✓";
+            yield return new WaitForSeconds(0.1f);
+        }
+
     }
     private IEnumerator FlashRed()
     {
